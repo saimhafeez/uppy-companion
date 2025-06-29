@@ -10,7 +10,12 @@ app.use(bodyParser.json());
 app.use(session({
   secret: process.env.COMPANION_SECRET,
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: {
+    secure: true,
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000
+  }
 }));
 
 const options = {
@@ -36,14 +41,18 @@ const options = {
   secret: process.env.COMPANION_SECRET,
   debug: true,
 
-  uploadUrls: [process.env.UPLOAD_URL] // frontend URLs allowed to receive upload result
+  // 🧩 Required by new Uppy versions
+  uploadUrls: [process.env.UPLOAD_URL]
 };
 
-app.use(companion.app(options));
+// ✅ Correct way to use middleware
+const { app: companionApp } = companion.app(options);
+app.use(companionApp);
 
 const PORT = process.env.PORT || 3020;
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Uppy Companion running on port ${PORT}`);
+  console.log(`✅ Uppy Companion running at ${options.server.protocol}://${options.server.host}`);
 });
 
+// ✅ Enable WebSocket support
 companion.socket(server, options);
