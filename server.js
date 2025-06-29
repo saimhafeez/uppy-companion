@@ -34,7 +34,9 @@ const options = {
   },
   filePath: '/tmp',
   secret: process.env.COMPANION_SECRET,
-  debug: true
+  debug: true,
+
+  uploadUrls: [process.env.UPLOAD_URL] // frontend URLs allowed to receive upload result
 };
 
 app.use(companion.app(options));
