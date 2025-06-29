@@ -1,51 +1,47 @@
-import express from 'express'
-import session from 'express-session'
-import bodyParser from 'body-parser'
-import { app as companionApp, socket } from '@uppy/companion'
+require('dotenv').config();
+const express = require('express');
+const session = require('express-session');
+const bodyParser = require('body-parser');
+const companion = require('@uppy/companion');
 
-const app = express()
-const PORT = process.env.PORT || 3020
+const app = express();
 
-// Session + Body Parser
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 app.use(session({
-  secret: process.env.COMPANION_SECRET || 'your-super-secret',
+  secret: process.env.COMPANION_SECRET,
   resave: false,
   saveUninitialized: true
-}))
+}));
 
-// Companion Options
 const options = {
   providerOptions: {
     drive: {
       key: process.env.GOOGLE_KEY,
-      secret: process.env.GOOGLE_SECRET,
+      secret: process.env.GOOGLE_SECRET
     },
     dropbox: {
       key: process.env.DROPBOX_KEY,
-      secret: process.env.DROPBOX_SECRET,
+      secret: process.env.DROPBOX_SECRET
     },
     onedrive: {
       key: process.env.ONEDRIVE_KEY,
-      secret: process.env.ONEDRIVE_SECRET,
+      secret: process.env.ONEDRIVE_SECRET
     }
   },
   server: {
-    host: process.env.COMPANION_DOMAIN || 'http://localhost:3020',
-    protocol: process.env.COMPANION_PROTOCOL || 'http'
+    host: process.env.COMPANION_DOMAIN,
+    protocol: 'https'
   },
-  filePath: '/tmp', // or your desired temp path
-  secret: process.env.COMPANION_SECRET || 'your-super-secret',
+  filePath: '/tmp',
+  secret: process.env.COMPANION_SECRET,
   debug: true
-}
+};
 
-// Mount Companion
-app.use(companionApp(options))
+app.use(companion.app(options));
 
-// Start Server
+const PORT = process.env.PORT || 3020;
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Companion server running on http://localhost:${PORT}`)
-})
+  console.log(`🚀 Uppy Companion running on port ${PORT}`);
+});
 
-// Enable Companion WebSocket (for real-time file progress)
-socket(server, options)
+companion.socket(server, options);
