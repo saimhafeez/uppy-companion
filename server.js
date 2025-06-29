@@ -1,37 +1,51 @@
-require('dotenv').config();
-const express = require('express');
-const companion = require('@uppy/companion');
+import express from 'express'
+import session from 'express-session'
+import bodyParser from 'body-parser'
+import { app as companionApp, socket } from '@uppy/companion'
 
-const app = express();
+const app = express()
+const PORT = process.env.PORT || 3020
 
+// Session + Body Parser
+app.use(bodyParser.json())
+app.use(session({
+  secret: process.env.COMPANION_SECRET || 'your-super-secret',
+  resave: false,
+  saveUninitialized: true
+}))
+
+// Companion Options
 const options = {
   providerOptions: {
-    google: {
-      key: process.env.GOOGLE_CLIENT_ID,
-      secret: process.env.GOOGLE_CLIENT_SECRET
+    drive: {
+      key: process.env.GOOGLE_KEY,
+      secret: process.env.GOOGLE_SECRET,
     },
     dropbox: {
-      key: process.env.DROPBOX_CLIENT_ID,
-      secret: process.env.DROPBOX_CLIENT_SECRET
+      key: process.env.DROPBOX_KEY,
+      secret: process.env.DROPBOX_SECRET,
     },
     onedrive: {
-      key: process.env.ONEDRIVE_CLIENT_ID,
-      secret: process.env.ONEDRIVE_CLIENT_SECRET
+      key: process.env.ONEDRIVE_KEY,
+      secret: process.env.ONEDRIVE_SECRET,
     }
   },
   server: {
-    host: process.env.COMPANION_DOMAIN,
-    protocol: "https"
+    host: process.env.COMPANION_DOMAIN || 'http://localhost:3020',
+    protocol: process.env.COMPANION_PROTOCOL || 'http'
   },
-  filePath: "/tmp",
-  secret: process.env.COMPANION_SECRET,
+  filePath: '/tmp', // or your desired temp path
+  secret: process.env.COMPANION_SECRET || 'your-super-secret',
   debug: true
-};
+}
 
-app.use(companion.app(options));
+// Mount Companion
+app.use(companionApp(options))
 
-// Enable WebSocket for real-time progress (optional)
-const server = app.listen(process.env.PORT || 3020, () => {
-  console.log(`Uppy Companion running on ${process.env.COMPANION_DOMAIN}`);
-});
-companion.socket(server, options);
+// Start Server
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Companion server running on http://localhost:${PORT}`)
+})
+
+// Enable Companion WebSocket (for real-time file progress)
+socket(server, options)
