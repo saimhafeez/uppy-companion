@@ -43,7 +43,7 @@ const options = {
   debug: true,
 
   // 🧩 Required by new Uppy versions
-  uploadUrls: [process.env.UPLOAD_URL]
+  uploadUrls: ['.*']
 };
 
 // ✅ Correct way to use middleware
